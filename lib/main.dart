@@ -1,13 +1,39 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:random/user_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const  MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+ const   MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+
+ 
+}
+
+class _MyAppState extends State<MyApp> {
+   String image = 'https://sbis.perm.ru/wp-content/uploads/2019/09/placeholder.png';
+String name = '';
+String phone = '';
+String email = '';
+String userName = '';
+double lat =0;
+double lng = 0;
+@override
+
+void initState(){
+    getData();
+    super.initState();
+
+  
+  
+  }
+@override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
@@ -20,7 +46,7 @@ class MyApp extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: getData,
                   child: const Text(
                     'Generate',
                     style: TextStyle(
@@ -33,15 +59,15 @@ class MyApp extends StatelessWidget {
               ),
               const SizedBox(height: 28),
               Center(
-                child: const CircleAvatar(
-                    backgroundImage: AssetImage('assets/images/photo.png'),
+                child: CircleAvatar(
+                    backgroundImage: NetworkImage(image),
                     radius: 70),
               ),
               const SizedBox(height: 56),
               Center(
                 child: Container(
                   height: 56,
-                  width: 328,
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     color: Color(0xffF4F4F4),
                     border: Border(
@@ -51,7 +77,7 @@ class MyApp extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
+                const       Padding(
                         padding: const EdgeInsets.all(2.0),
                         child: const Text('Name',
                             style: TextStyle(
@@ -59,7 +85,7 @@ class MyApp extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                             )),
                       ),
-                      Text('Alex Marshall',
+                      Text(name,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
@@ -72,7 +98,7 @@ class MyApp extends StatelessWidget {
               Center(
                 child: Container(
                   height: 56,
-                  width: 328,
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     color: Color(0xffF4F4F4),
                     border: Border(
@@ -82,7 +108,7 @@ class MyApp extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
+                const       Padding(
                         padding: const EdgeInsets.all(2.0),
                         child: const Text('Username',
                             style: TextStyle(
@@ -90,7 +116,7 @@ class MyApp extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                             )),
                       ),
-                      Text('alex_marshall',
+                      Text(userName,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
@@ -103,7 +129,7 @@ class MyApp extends StatelessWidget {
               Center(
                 child: Container(
                   height: 56,
-                  width: 328,
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     color: Color(0xffF4F4F4),
                     border: Border(
@@ -121,7 +147,7 @@ class MyApp extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                             )),
                       ),
-                      Text('+1457825547',
+                      Text(phone,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
@@ -134,26 +160,26 @@ class MyApp extends StatelessWidget {
               Center(
                 child: Container(
                   height: 56,
-                  width: 328,
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     color: Color(0xffF4F4F4),
                     border: Border(
                       bottom: BorderSide(color: Colors.black, width: 5.0),
                     ),
                   ),
-                  child:const  Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
                         padding: EdgeInsets.all(2.0),
-                        child: const Text('Email',
+                        child:const Text('Email',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
                             )),
                       ),
                       Text(
-                        'alexmarshall2022@gmail.com',
+                        email,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
@@ -165,9 +191,9 @@ class MyApp extends StatelessWidget {
               ),
               SizedBox( height: 20),
               Center(
-                child: Container( height: 56, width: 328,
+                child: Container( height: 56, width: double.infinity,
                   child: ElevatedButton( style: ElevatedButton.styleFrom(backgroundColor: Color(0xff263775),),
-                      onPressed: () {},
+                      onPressed:_launchUrl,
                       child: const  Text(
                         'Get location',
                         style: TextStyle(
@@ -184,4 +210,32 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
+  Future<void> getData() async {
+    final Dio dio =Dio();
+    final response = await dio.get('https://randomuser.me/api/');
+    final result = UserModel.fromJson(response.data);
+
+
+ image = result.results?.first.picture?.large ?? '';
+  name = '${result.results?.first.name?.first} ${result.results?.first.name?.last}'; 
+   phone = result.results?.first.phone ?? '';
+  email = result.results?.first.email ??'';
+   userName = result.results?.first.login?.username??'';
+  lat = double.tryParse(result.results?.first.location?.coordinates?.latitude?? '') ?? 0;
+   lng = double.tryParse(result.results?.first.location?.coordinates?.longitude?? '') ?? 0;
+
+setState(() {
+  
+});
+  }
+
+Future<void> _launchUrl() async {
+  final Uri _url = Uri.parse('https://maps.google.com/?q=$lat,$lng');
+  if (!await launchUrl(_url)) {
+    throw Exception('Could not launch $_url');
+  }
+}
+
+
+
 }
